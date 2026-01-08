@@ -36,12 +36,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams
+    const apiUrl = searchParams.get('apiUrl') || 'http://localhost:8000'
     const body = await request.json()
-    const { promptName, description, apiUrl } = body
-
-    if (!apiUrl) {
-      return NextResponse.json({ error: 'API URL is required' }, { status: 400 })
-    }
+    const { promptName, description } = body
 
     // Server-side HTTP call
     const response = await fetch(`${apiUrl}/system-prompts/prompts`, {

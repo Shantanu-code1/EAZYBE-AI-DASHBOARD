@@ -311,27 +311,35 @@ function Dashboard() {
   ]
   
   // Get API URL from localStorage or use default (safe for SSR)
-  const [apiUrl, setApiUrl] = useState(() => {
+  // Start with default to avoid hydration mismatch
+  const [apiUrl, setApiUrl] = useState('http://localhost:8000')
+  const [mounted, setMounted] = useState(false)
+  
+  const [promptApiUrl, setPromptApiUrl] = useState('http://localhost:8000')
+  const [useBackendPrompts, setUseBackendPrompts] = useState(true)
+  
+  // Load from localStorage after hydration (client-side only)
+  useEffect(() => {
+    setMounted(true)
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('apiUrl')
-      return saved || 'http://localhost:8000'
+      if (saved) {
+        setApiUrl(saved)
+        setPromptApiUrl(saved)
+      }
     }
-    return 'http://localhost:8000'
-  })
-  
-  const [promptApiUrl, setPromptApiUrl] = useState(apiUrl)
-  const [useBackendPrompts, setUseBackendPrompts] = useState(true)
+  }, [])
   
   // Update apiUrl and save to localStorage, notify other pages
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (mounted && typeof window !== 'undefined') {
       localStorage.setItem('apiUrl', apiUrl)
       setPromptApiUrl(apiUrl) // Sync promptApiUrl with apiUrl
       
       // Dispatch custom event to notify other pages
       window.dispatchEvent(new CustomEvent('apiUrlChanged', { detail: apiUrl }))
     }
-  }, [apiUrl])
+  }, [apiUrl, mounted])
   
   // Helper function to get API URL dynamically
   const getApiUrl = () => {
@@ -390,16 +398,13 @@ function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useBackendPrompts])
 
-  // Fetch all prompts from backend via Next.js API route
+  // Fetch all prompts from backend
   const fetchPromptsFromBackend = async (limit = 100, skip = 0) => {
     setIsLoadingPrompts(true)
     setPromptError(null)
     try {
-      // Use Next.js API route which handles HTTP calls server-side
-      const response = await fetch(`/api/prompts?limit=${limit}&skip=${skip}&apiUrl=${encodeURIComponent(promptApiUrl)}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
+      const response = await fetch(`${promptApiUrl}/system-prompts/prompts?limit=${limit}&skip=${skip}`, {
+        headers: getHeaders(promptApiUrl)
       })
       if (!response.ok) {
         throw new Error(`Failed to fetch prompts: ${response.status}`)
@@ -496,18 +501,15 @@ function Dashboard() {
     }
   }
 
-  // Create prompt in backend via Next.js API route
+  // Create prompt in backend
   const createPromptInBackend = async (promptName: string, description: string) => {
     try {
-      const response = await fetch('/api/prompts', {
+      const response = await fetch(`${promptApiUrl}/system-prompts/prompts`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(promptApiUrl),
         body: JSON.stringify({
-          promptName,
-          description,
-          apiUrl: promptApiUrl
+          prompt_name: promptName,
+          description: description
         })
       })
       
@@ -522,17 +524,14 @@ function Dashboard() {
     }
   }
 
-  // Update prompt in backend via Next.js API route
+  // Update prompt in backend
   const updatePromptInBackend = async (promptName: string, description: string) => {
     try {
-      const response = await fetch(`/api/prompts/${encodeURIComponent(promptName)}`, {
+      const response = await fetch(`${promptApiUrl}/system-prompts/prompts/${promptName}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(promptApiUrl),
         body: JSON.stringify({
-          description: description,
-          apiUrl: promptApiUrl
+          description: description
         })
       })
       
@@ -547,14 +546,12 @@ function Dashboard() {
     }
   }
 
-  // Delete prompt from backend via Next.js API route
+  // Delete prompt from backend
   const deletePromptFromBackend = async (promptName: string) => {
     try {
-      const response = await fetch(`/api/prompts/${encodeURIComponent(promptName)}?apiUrl=${encodeURIComponent(promptApiUrl)}`, {
+      const response = await fetch(`${promptApiUrl}/system-prompts/prompts/${promptName}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        headers: getHeaders(promptApiUrl)
       })
       
       if (!response.ok) {
@@ -590,16 +587,12 @@ function Dashboard() {
     const tempMessageIndex = messages.length + 1
     
     try {
-      // Use Next.js API route for streaming - server-side HTTP call
-      const response = await fetch('/api/query/smart/stream', {
+      const response = await fetch(`${getApiUrl()}/query/smart/stream`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getHeaders(getApiUrl()),
         body: JSON.stringify({
           query: queryText,
-          uid: uid,
-          apiUrl: getApiUrl()
+          uid: uid
         })
       })
 
@@ -1876,9 +1869,9 @@ function Dashboard() {
                     <Send className="w-5 h-5" />
                   </button>
                 </form>
-                <p className={`text-xs text-center mt-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                <p className={`text-xs text-center mt-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`} suppressHydrationWarning>
                   {uid.trim() ? 
-                    `Server: ${apiUrl} • UID: ${uid} • ${useStreaming ? 'Streaming ⚡' : 'Standard'}` : 
+                    `Server: ${mounted ? apiUrl : 'http://localhost:8000'} • UID: ${uid} • ${useStreaming ? 'Streaming ⚡' : 'Standard'}` : 
                     'Please enter a User ID to continue'}
                 </p>
               </div>

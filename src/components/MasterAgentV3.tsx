@@ -116,13 +116,20 @@ function MasterAgentV3() {
   const [darkMode, setDarkMode] = useState(true)
   const [apiError, setApiError] = useState<string | null>(null)
   const [showSettings, setShowSettings] = useState(false)
-  const [apiUrl, setApiUrl] = useState(() => {
+  // Start with default to avoid hydration mismatch
+  const [apiUrl, setApiUrl] = useState('http://localhost:8000')
+  const [mounted, setMounted] = useState(false)
+  
+  // Load from localStorage after hydration
+  useEffect(() => {
+    setMounted(true)
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('apiUrl')
-      return saved || 'http://localhost:8000'
+      if (saved) {
+        setApiUrl(saved)
+      }
     }
-    return 'http://localhost:8000'
-  })
+  }, [])
   
   const apiUrlOptions = [
     'http://dko04c08848wsc8ckskgwwss.5.161.63.64.sslip.io',
@@ -157,11 +164,11 @@ function MasterAgentV3() {
   
   // Save apiUrl changes to localStorage and notify other pages
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (mounted && typeof window !== 'undefined') {
       localStorage.setItem('apiUrl', apiUrl)
       window.dispatchEvent(new CustomEvent('apiUrlChanged', { detail: apiUrl }))
     }
-  }, [apiUrl])
+  }, [apiUrl, mounted])
 
   const currentChat = chats.find(chat => chat.id === currentChatId) || chats[0]
   const messages = currentChat.messages
@@ -1210,9 +1217,9 @@ function MasterAgentV3() {
                 <Send className="w-5 h-5" />
               </button>
             </form>
-            <p className={`text-xs text-center mt-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+            <p className={`text-xs text-center mt-3 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`} suppressHydrationWarning>
               {uid.trim() && conversationId.trim() ? 
-                `Server: ${apiUrl} • UID: ${uid} • Conv ID: ${conversationId} • ${useStreaming ? 'Streaming ⚡' : 'Standard'}` : 
+                `Server: ${mounted ? apiUrl : 'http://localhost:8000'} • UID: ${uid} • Conv ID: ${conversationId} • ${useStreaming ? 'Streaming ⚡' : 'Standard'}` : 
                 'Please enter a User ID and Conversation ID to continue'}
             </p>
           </div>

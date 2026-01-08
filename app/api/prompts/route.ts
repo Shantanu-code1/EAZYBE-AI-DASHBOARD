@@ -27,6 +27,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data)
   } catch (error) {
     console.error('Error fetching prompts:', error)
+    // Check if it's a connection error
+    if (error instanceof Error && (error.message.includes('ECONNREFUSED') || error.message.includes('fetch failed'))) {
+      return NextResponse.json(
+        { error: `Cannot connect to backend API at ${request.nextUrl.searchParams.get('apiUrl') || 'http://localhost:8000'}. Please ensure the backend server is running.` },
+        { status: 503 }
+      )
+    }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to fetch prompts' },
       { status: 500 }

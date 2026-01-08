@@ -398,13 +398,15 @@ function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useBackendPrompts])
 
-  // Fetch all prompts from backend
+  // Fetch all prompts from backend via Next.js API route (server-side)
   const fetchPromptsFromBackend = async (limit = 100, skip = 0) => {
     setIsLoadingPrompts(true)
     setPromptError(null)
     try {
-      const response = await fetch(`${promptApiUrl}/system-prompts/prompts?limit=${limit}&skip=${skip}`, {
-        headers: getHeaders(promptApiUrl)
+      const response = await fetch(`/api/prompts?limit=${limit}&skip=${skip}&apiUrl=${encodeURIComponent(promptApiUrl)}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
       })
       if (!response.ok) {
         throw new Error(`Failed to fetch prompts: ${response.status}`)
@@ -501,15 +503,17 @@ function Dashboard() {
     }
   }
 
-  // Create prompt in backend
+  // Create prompt in backend via Next.js API route (server-side)
   const createPromptInBackend = async (promptName: string, description: string) => {
     try {
-      const response = await fetch(`${promptApiUrl}/system-prompts/prompts`, {
+      const response = await fetch(`/api/prompts?apiUrl=${encodeURIComponent(promptApiUrl)}`, {
         method: 'POST',
-        headers: getHeaders(promptApiUrl),
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          prompt_name: promptName,
-          description: description
+          promptName,
+          description
         })
       })
       
@@ -524,12 +528,14 @@ function Dashboard() {
     }
   }
 
-  // Update prompt in backend
+  // Update prompt in backend via Next.js API route (server-side)
   const updatePromptInBackend = async (promptName: string, description: string) => {
     try {
-      const response = await fetch(`${promptApiUrl}/system-prompts/prompts/${promptName}`, {
+      const response = await fetch(`/api/prompts/${encodeURIComponent(promptName)}?apiUrl=${encodeURIComponent(promptApiUrl)}`, {
         method: 'PUT',
-        headers: getHeaders(promptApiUrl),
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           description: description
         })
@@ -546,12 +552,14 @@ function Dashboard() {
     }
   }
 
-  // Delete prompt from backend
+  // Delete prompt from backend via Next.js API route (server-side)
   const deletePromptFromBackend = async (promptName: string) => {
     try {
-      const response = await fetch(`${promptApiUrl}/system-prompts/prompts/${promptName}`, {
+      const response = await fetch(`/api/prompts/${encodeURIComponent(promptName)}?apiUrl=${encodeURIComponent(promptApiUrl)}`, {
         method: 'DELETE',
-        headers: getHeaders(promptApiUrl)
+        headers: {
+          'Content-Type': 'application/json',
+        }
       })
       
       if (!response.ok) {
@@ -587,12 +595,16 @@ function Dashboard() {
     const tempMessageIndex = messages.length + 1
     
     try {
-      const response = await fetch(`${getApiUrl()}/query/smart/stream`, {
+      // Use Next.js API route for streaming (server-side HTTP call)
+      const response = await fetch('/api/query/smart/stream', {
         method: 'POST',
-        headers: getHeaders(getApiUrl()),
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           query: queryText,
-          uid: uid
+          uid: uid,
+          apiUrl: getApiUrl()
         })
       })
 
@@ -837,12 +849,16 @@ function Dashboard() {
   // NON-STREAMING HANDLER (Original)
   const handleNonStreamingQuery = async (queryText: string) => {
     try {
-      const response = await fetch(`${getApiUrl()}/query/smart`, {
+      // Use Next.js API route (server-side HTTP call)
+      const response = await fetch('/api/query/smart', {
         method: 'POST',
-        headers: getHeaders(getApiUrl()),
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           query: queryText,
-          uid: uid
+          uid: uid,
+          apiUrl: getApiUrl()
         })
       })
 

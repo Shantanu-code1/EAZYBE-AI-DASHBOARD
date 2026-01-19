@@ -426,6 +426,7 @@ function Dashboard() {
           'BIGQUERY_INTERPRETER': 'BigQuery Interpreter',
           'RAG_SINGLE_PROMPT': 'RAG Single Prompt',
           'TEAMINBOX-LABELS': 'TeamInbox Labels',
+          'TEAMINBOX-LABELS_DEV': 'TeamInbox Labels Dev',
           'EAZYBE_AI_LABEL_PROMPT': 'EazyBe AI Label Prompt',
           'SYNTHESIZER_USER_PROMPT_TEMPLATE': 'Synthesizer User Prompt Template',
           'SYNTHESIZER_SYSTEM_PROMPT': 'Synthesizer System Prompt',
@@ -445,6 +446,7 @@ function Dashboard() {
           'BIGQUERY_INTERPRETER': 'Result formatting and interpretation',
           'RAG_SINGLE_PROMPT': 'Knowledge base queries',
           'TEAMINBOX-LABELS': 'Manages and categorizes TeamInbox conversation labels',
+          'TEAMINBOX-LABELS_DEV': 'Development version of TeamInbox label management and categorization',
           'EAZYBE_AI_LABEL_PROMPT': 'EazyBe AI label management and categorization',
           'SYNTHESIZER_USER_PROMPT_TEMPLATE': 'Template for synthesizer user prompts',
           'SYNTHESIZER_SYSTEM_PROMPT': 'System prompt for response synthesis',
@@ -476,6 +478,7 @@ function Dashboard() {
         'BIGQUERY_INTERPRETER',
         'RAG_SINGLE_PROMPT',
         'TEAMINBOX-LABELS',
+        'TEAMINBOX-LABELS_DEV',
         'EAZYBE_AI_LABEL_PROMPT',
         'SYNTHESIZER_USER_PROMPT_TEMPLATE',
         'SYNTHESIZER_SYSTEM_PROMPT',
@@ -1325,6 +1328,10 @@ function Dashboard() {
                   <div className={`p-2 rounded ${darkMode ? 'bg-gray-800/50' : 'bg-white'}`}>
                     <div className="font-medium text-xs mb-1">TeamInbox Labels</div>
                     <div className="text-xs">Manages and categorizes TeamInbox conversation labels</div>
+                  </div>
+                  <div className={`p-2 rounded ${darkMode ? 'bg-gray-800/50' : 'bg-white'}`}>
+                    <div className="font-medium text-xs mb-1">TeamInbox Labels Dev</div>
+                    <div className="text-xs">Development version of TeamInbox label management and categorization</div>
                   </div>
                   <div className={`p-2 rounded ${darkMode ? 'bg-gray-800/50' : 'bg-white'}`}>
                     <div className="font-medium text-xs mb-1">EazyBe AI Label Prompt</div>

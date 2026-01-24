@@ -339,6 +339,24 @@ function HubSpotAgent() {
               HubSpot Agent
             </h1>
           </div>
+          <div className="flex items-center gap-2">
+            {/* HubSpot OAuth button */}
+            <button
+              onClick={() => {
+                if (typeof window === 'undefined') return
+                const redirectUri = `${window.location.origin}/oauth-callback`
+                const encodedRedirectUri = encodeURIComponent(redirectUri)
+
+                window.location.href =
+                  `https://app.hubspot.com/oauth/authorize/user` +
+                  `?client_id=0c40c683-cfae-43cf-9450-7eefa4f4a752` +
+                  `&redirect_uri=${encodedRedirectUri}`
+              }}
+              className="px-4 py-2 rounded bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+            >
+              Integrate Hubspot with AI
+            </button>
+          </div>
         </div>
 
         {/* Settings Panel */}

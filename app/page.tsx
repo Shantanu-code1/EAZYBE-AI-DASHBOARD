@@ -1,10 +1,10 @@
 'use client'
 
-import Dashboard from '@/src/components/Dashboard'
+import StartGate from '@/src/components/StartGate'
 
 export const dynamic = 'force-dynamic'
 
 export default function Home() {
-  return <Dashboard />
+  return <StartGate />
 }
 

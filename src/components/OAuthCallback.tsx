@@ -1,50 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { CheckCircle, XCircle, Loader2, Save } from 'lucide-react'
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react'
 
 function OAuthCallback() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [status, setStatus] = useState<'loading' | 'form' | 'exchanging' | 'success' | 'error'>('loading')
+  const [status, setStatus] = useState<'loading' | 'exchanging' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('Processing OAuth callback...')
-  const [name, setName] = useState('')
-  const [workspaceId, setWorkspaceId] = useState('')
-  const [orgId, setOrgId] = useState('')
-  const [code, setCode] = useState<string | null>(null)
-  const [apiError, setApiError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const authCode = searchParams.get('code')
-    const error = searchParams.get('error')
-    const errorDescription = searchParams.get('error_description')
-
-    if (error) {
-      setStatus('error')
-      setMessage(errorDescription || `Authorization failed: ${error}`)
-      return
-    }
-
-    if (!authCode) {
-      setStatus('error')
-      setMessage('No authorization code received from HubSpot')
-      return
-    }
-
-    setCode(authCode)
-    setStatus('form')
-    setMessage('Please provide a name and workspace ID for this token')
-  }, [searchParams])
-
-  const exchangeToken = async () => {
-    if (!code || !name.trim() || !workspaceId.trim() || !orgId.trim()) {
-      setApiError('Please fill in name, workspace ID, and org ID')
-      return
-    }
-
+  const exchangeToken = useCallback(async (code: string, name: string, workspaceId: string, orgId: string) => {
     setStatus('exchanging')
-    setApiError(null)
+    setMessage('Exchanging authorization code for token...')
 
     try {
       const apiUrl = localStorage.getItem('apiUrl') || 'http://localhost:8000'
@@ -68,7 +36,7 @@ function OAuthCallback() {
 
       const data = await response.json()
 
-      // Store tokens locally (optional; keep if you need it)
+      // Store tokens locally
       localStorage.setItem('hubspot_access_token', data.access_token)
       if (data.refresh_token) localStorage.setItem('hubspot_refresh_token', data.refresh_token)
       if (data.expires_in) {
@@ -80,15 +48,59 @@ function OAuthCallback() {
 
       setTimeout(() => router.push('/'), 2000)
     } catch (error) {
-      setStatus('form')
-      setApiError(error instanceof Error ? error.message : 'Failed to exchange authorization code')
+      setStatus('error')
+      setMessage(error instanceof Error ? error.message : 'Failed to exchange authorization code')
     }
-  }
+  }, [router])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await exchangeToken()
-  }
+  useEffect(() => {
+    const authCode = searchParams.get('code')
+    const error = searchParams.get('error')
+    const errorDescription = searchParams.get('error_description')
+
+    if (error) {
+      setStatus('error')
+      setMessage(errorDescription || `Authorization failed: ${error}`)
+      return
+    }
+
+    if (!authCode) {
+      setStatus('error')
+      setMessage('No authorization code received from HubSpot')
+      return
+    }
+
+    // Get user data from localStorage
+    const eazybeResponseStr = localStorage.getItem('eazybe_verify_otp_response')
+    if (!eazybeResponseStr) {
+      setStatus('error')
+      setMessage('User session not found. Please login first.')
+      return
+    }
+
+    let eazybeData
+    try {
+      eazybeData = JSON.parse(eazybeResponseStr)
+    } catch (e) {
+      setStatus('error')
+      setMessage('Invalid user session data')
+      return
+    }
+
+    // Extract required fields
+    const name = eazybeData?.data?.user_info?.email || ''
+    const workspaceId = String(eazybeData?.data?.user_info?.id || '')
+    const orgId = String(eazybeData?.data?.user_mapping?.org_id || '')
+
+    if (!name || !workspaceId || !orgId) {
+      setStatus('error')
+      setMessage('Missing user data. Please login again.')
+      return
+    }
+
+    // Automatically exchange token
+    exchangeToken(authCode, name, workspaceId, orgId)
+  }, [searchParams, exchangeToken])
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-800 flex items-center justify-center p-4">
@@ -98,66 +110,6 @@ function OAuthCallback() {
             <Loader2 className="w-16 h-16 text-blue-500 animate-spin mx-auto mb-4" />
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Connecting to HubSpot...</h2>
             <p className="text-gray-600 dark:text-gray-400">{message}</p>
-          </>
-        )}
-
-        {status === 'form' && (
-          <>
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Authorization Code Received!</h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{message}</p>
-
-            <form onSubmit={handleSubmit} className="space-y-4 text-left">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., user_token_1"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Workspace ID</label>
-                <input
-                  type="text"
-                  value={workspaceId}
-                  onChange={(e) => setWorkspaceId(e.target.value)}
-                  placeholder="e.g., workspace_123"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Organization ID</label>
-                <input
-                  type="text"
-                  value={orgId}
-                  onChange={(e) => setOrgId(e.target.value)}
-                  placeholder="e.g., 902"
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  required
-                />
-              </div>
-
-              {apiError && (
-                <div className="p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg">
-                  <p className="text-sm text-red-700 dark:text-red-400">{apiError}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-              >
-                <Save className="w-4 h-4" />
-                Exchange Token
-              </button>
-            </form>
           </>
         )}
 

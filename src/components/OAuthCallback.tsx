@@ -17,7 +17,8 @@ function OAuthCallback() {
     try {
       const apiUrl = localStorage.getItem('apiUrl') || 'http://localhost:8000'
 
-      const response = await fetch(`${apiUrl}/hubspot/oauth/token`, {
+      // Call Next.js API route (server-side proxy) to avoid mixed-content errors
+      const response = await fetch(`/api/hubspot/oauth/token?apiUrl=${encodeURIComponent(apiUrl)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -30,8 +31,8 @@ function OAuthCallback() {
       })
 
       if (!response.ok) {
-        const errorData = await response.text()
-        throw new Error(`Token exchange failed: ${response.status} ${response.statusText} - ${errorData}`)
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || `Token exchange failed: ${response.status} ${response.statusText}`)
       }
 
       const data = await response.json()

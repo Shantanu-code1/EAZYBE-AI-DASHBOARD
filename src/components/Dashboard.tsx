@@ -432,7 +432,8 @@ function Dashboard() {
           'SYNTHESIZER_SYSTEM_PROMPT': 'Synthesizer System Prompt',
           'MASTERAGENT_V3_SYSTEM_PROMPT': 'Master Agent V3 System Prompt',
           'SALES_AGENT_PROMPT': 'Sales Agent Prompt',
-          'SALES_AGENT_USER_PROMPT': 'Sales Agent User Prompt'
+          'SALES_AGENT_USER_PROMPT': 'Sales Agent User Prompt',
+          'MCP_REV_AGENT': 'MCP Rev Agent'
         }
         
         // Map prompt names to use cases
@@ -452,7 +453,8 @@ function Dashboard() {
           'SYNTHESIZER_SYSTEM_PROMPT': 'System prompt for response synthesis',
           'MASTERAGENT_V3_SYSTEM_PROMPT': 'System prompt for Master Agent V3 routing and planning',
           'SALES_AGENT_PROMPT': 'Sales agent interactions and sales-related queries',
-          'SALES_AGENT_USER_PROMPT': 'User prompt template for sales agent interactions'
+          'SALES_AGENT_USER_PROMPT': 'User prompt template for sales agent interactions',
+          'MCP_REV_AGENT': 'MCP Rev Agent'
         }
         
         return {
@@ -484,7 +486,8 @@ function Dashboard() {
         'SYNTHESIZER_SYSTEM_PROMPT',
         'MASTERAGENT_V3_SYSTEM_PROMPT',
         'SALES_AGENT_PROMPT',
-        'SALES_AGENT_USER_PROMPT'
+        'SALES_AGENT_USER_PROMPT',
+        'MCP_REV_AGENT'
       ]
       const filteredPrompts = backendPrompts.filter(p => 
         allowedPrompts.includes(p.prompt_name || p.id)

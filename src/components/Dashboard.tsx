@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Send, MessageSquare, Plus, Settings, Menu, Moon, Sun, BookOpen, Edit2, Trash2, Check, X, RefreshCw, Zap, Globe, MessageCircle, Sparkles, ExternalLink, Database } from 'lucide-react'
+import { Send, MessageSquare, Plus, Settings, Menu, Moon, Sun, BookOpen, Edit2, Trash2, Check, X, RefreshCw, Zap, Globe, MessageCircle, Sparkles, ExternalLink, Database, Bot } from 'lucide-react'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -1173,6 +1173,13 @@ function Dashboard() {
             >
               <MessageCircle className="w-4 h-4" />
               <span className="text-sm">HubSpot Agent</span>
+            </button>
+            <button
+              onClick={() => router.push('/new-agent')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 ${darkMode ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-indigo-500 hover:bg-indigo-600'} text-white rounded-lg transition-colors mb-2`}
+            >
+              <Bot className="w-4 h-4" />
+              <span className="text-sm">New Agent</span>
             </button>
             <div className={`h-px ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`} />
           </div>

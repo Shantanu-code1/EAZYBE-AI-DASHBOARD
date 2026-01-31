@@ -21,7 +21,7 @@ function getOrgIdAndWorkspaceId(): { org_id: string; workspace_id: string } {
     if (!raw) return { org_id: '', workspace_id: '' }
     const data = JSON.parse(raw)
     const org_id = String(data?.data?.user_mapping?.org_id ?? '')
-    const workspace_id = String(data?.data?.user_info?.id ?? '')
+    const workspace_id = String(data?.data?.user_mapping?.organization?.workspace_id ?? '')
     return { org_id, workspace_id }
   } catch {
     return { org_id: '', workspace_id: '' }

@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Send, MessageSquare, Menu, Moon, Sun, BookOpen, ExternalLink, Database, MessageCircle, Bot } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -131,6 +133,8 @@ export default function NewAgent() {
               }
             } else if (type === 'response' && json.content != null) {
               finalContent = typeof json.content === 'string' ? json.content : String(json.content)
+            } else if (json.response != null) {
+              finalContent = typeof json.response === 'string' ? json.response : String(json.response)
             }
           } catch {
             // ignore malformed
@@ -179,7 +183,9 @@ export default function NewAgent() {
             ? (typeof data.content === 'string' ? data.content : String(data.content))
             : typeof data?.answer === 'string'
               ? data.answer
-              : JSON.stringify(data, null, 2)
+              : data?.response != null
+                ? (typeof data.response === 'string' ? data.response : String(data.response))
+                : JSON.stringify(data, null, 2)
         setMessages((prev) => [
           ...prev,
           { role: 'assistant', content, timestamp: new Date() },
@@ -314,8 +320,33 @@ export default function NewAgent() {
                     <div className={`text-sm font-semibold ${textClass} mb-1`}>
                       {msg.role === 'user' ? 'You' : 'Assistant'}
                     </div>
-                    <div className={`${darkMode ? 'bg-gray-700/30' : 'bg-gray-100'} rounded-lg p-4 ${textClass} whitespace-pre-wrap break-words`}>
-                      {msg.content || (msg.role === 'assistant' && isProcessing ? '…' : '')}
+                    <div className={`${darkMode ? 'bg-gray-700/30' : 'bg-gray-100'} rounded-lg p-5 ${textClass} break-words markdown-content shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({node, ...props}: any) => <h1 className="text-xl font-bold mb-4 mt-2 pb-2 border-b border-gray-600/30 flex items-center gap-2" {...props} />,
+                          h2: ({node, ...props}: any) => <h2 className="text-lg font-bold mb-3 mt-4 text-purple-400/90" {...props} />,
+                          h3: ({node, ...props}: any) => <h3 className="text-md font-semibold mb-2 mt-4 text-blue-400" {...props} />,
+                          p: ({node, ...props}: any) => <p className="mb-4 leading-relaxed opacity-90" {...props} />,
+                          ul: ({node, ...props}: any) => <ul className="list-disc ml-6 mb-4 space-y-1" {...props} />,
+                          ol: ({node, ...props}: any) => <ol className="list-decimal ml-6 mb-4 space-y-1" {...props} />,
+                          li: ({node, ...props}: any) => <li className="mb-1" {...props} />,
+                          table: ({node, ...props}: any) => (
+                            <div className="overflow-x-auto my-6 rounded-xl border border-gray-700/50 shadow-lg">
+                              <table className="w-full text-sm text-left border-collapse" {...props} />
+                            </div>
+                          ),
+                          thead: ({node, ...props}: any) => <thead className={`${darkMode ? 'bg-gray-800' : 'bg-gray-200'} font-semibold`} {...props} />,
+                          th: ({node, ...props}: any) => <th className="px-4 py-3 border-b border-gray-700 text-purple-300 font-medium whitespace-nowrap" {...props} />,
+                          td: ({node, ...props}: any) => <td className="px-4 py-3 border-b border-gray-700/50 whitespace-nowrap" {...props} />,
+                          tr: ({node, ...props}: any) => <tr className={`${darkMode ? 'hover:bg-gray-600/30' : 'hover:bg-gray-200/50'} transition-colors`} {...props} />,
+                          blockquote: ({node, ...props}: any) => <blockquote className="border-l-4 border-purple-500 pl-4 py-1 my-4 italic opacity-80" {...props} />,
+                          code: ({node, ...props}: any) => <code className={`${darkMode ? 'bg-gray-800' : 'bg-gray-200'} px-1.5 py-0.5 rounded text-sm font-mono`} {...props} />,
+                          strong: ({node, ...props}: any) => <strong className="font-bold text-blue-300" {...props} />,
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
                     </div>
                     <div className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                       {msg.timestamp.toLocaleTimeString()}

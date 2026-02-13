@@ -433,9 +433,10 @@ function Dashboard() {
           'MASTERAGENT_V3_SYSTEM_PROMPT': 'Master Agent V3 System Prompt',
           'SALES_AGENT_PROMPT': 'Sales Agent Prompt',
           'SALES_AGENT_USER_PROMPT': 'Sales Agent User Prompt',
-          'MCP_REV_AGENT': 'MCP Rev Agent'
+          'MCP_REV_AGENT': 'MCP Rev Agent',
+          'DEFAULT_MCP_REV_AGENT_PROMPT': 'Default MCP Rev Agent Prompt'
         }
-        
+
         // Map prompt names to use cases
         const useCases: Record<string, string> = {
           'MASTER_AGENT_SELECTION_PROMPT_KB': 'Routes queries to the correct agent',
@@ -454,9 +455,10 @@ function Dashboard() {
           'MASTERAGENT_V3_SYSTEM_PROMPT': 'System prompt for Master Agent V3 routing and planning',
           'SALES_AGENT_PROMPT': 'Sales agent interactions and sales-related queries',
           'SALES_AGENT_USER_PROMPT': 'User prompt template for sales agent interactions',
-          'MCP_REV_AGENT': 'MCP Rev Agent'
+          'MCP_REV_AGENT': 'MCP Rev Agent',
+          'DEFAULT_MCP_REV_AGENT_PROMPT': 'Default system prompt for MCP Rev Agent'
         }
-        
+
         return {
           id: p.prompt_name,
           name: displayNames[p.prompt_name] || p.prompt_name,
@@ -487,7 +489,8 @@ function Dashboard() {
         'MASTERAGENT_V3_SYSTEM_PROMPT',
         'SALES_AGENT_PROMPT',
         'SALES_AGENT_USER_PROMPT',
-        'MCP_REV_AGENT'
+        'MCP_REV_AGENT',
+        'DEFAULT_MCP_REV_AGENT_PROMPT'
       ]
       const filteredPrompts = backendPrompts.filter(p => 
         allowedPrompts.includes(p.prompt_name || p.id)
